@@ -86,7 +86,7 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	route := network.Route{
-		Name: &name,
+		Name:                  &name,
 		RoutePropertiesFormat: &properties,
 	}
 

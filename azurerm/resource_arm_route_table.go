@@ -115,7 +115,7 @@ func resourceArmRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 		Name:     &name,
 		Location: &location,
 		RouteTablePropertiesFormat: &network.RouteTablePropertiesFormat{
-			Routes: &routes,
+			Routes:                     &routes,
 			DisableBgpRoutePropagation: utils.Bool(d.Get("disable_bgp_route_propagation").(bool)),
 		},
 		Tags: expandTags(tags),
@@ -233,7 +233,7 @@ func expandRouteTableRoutes(d *schema.ResourceData) ([]network.Route, error) {
 
 		name := data["name"].(string)
 		route := network.Route{
-			Name: &name,
+			Name:                  &name,
 			RoutePropertiesFormat: &properties,
 		}
 

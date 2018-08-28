@@ -202,6 +202,23 @@ func resourceArmFunctionApp() *schema.Resource {
 					},
 				},
 			},
+			"source_control": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"repo_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"branch": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -273,6 +290,8 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
+
+	// scmFuture, err := client.CreateOrUpdateSourceControl(ctx, resGroup, name, {})
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
@@ -414,6 +433,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", name, err)
 	}
 
+	scmResp, err := client.GetSourceControl(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", name, err)
+	}
+
 	siteCredFuture, err := client.ListPublishingCredentials(ctx, resGroup, name)
 	if err != nil {
 		return err
@@ -474,6 +498,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	scm := flattenFunctionAppSourceControl(scmResp.SiteSourceControlProperties)
+	if err := d.Set("source_control", scm); err != nil {
+		return err
+	}
+
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
 	if err := d.Set("site_credential", siteCred); err != nil {
 		return err
@@ -507,6 +536,27 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func flattenFunctionAppSourceControl(input *web.SiteSourceControlProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{}, 0)
+
+	if input == nil {
+		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
+		return results
+	}
+
+	if input.RepoURL != nil {
+		result["repo_url"] = *input.RepoURL
+	}
+	if input.Branch != nil && *input.Branch != "" {
+		result["branch"] = *input.Branch
+	} else {
+		result["branch"] = "master"
+	}
+
+	return append(results, result)
 }
 
 func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) []web.NameValuePair {
@@ -692,3 +742,7 @@ func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 
 	return append(results, result)
 }
+
+// func getFunctionAppSourceControl(ctx context.Context, repo_url string, branch string) string, string {
+
+// }
