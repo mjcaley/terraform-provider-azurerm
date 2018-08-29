@@ -264,6 +264,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_network_gateway":                 resourceArmVirtualNetworkGateway(),
 			"azurerm_virtual_network_gateway_connection":      resourceArmVirtualNetworkGatewayConnection(),
 			"azurerm_virtual_network_peering":                 resourceArmVirtualNetworkPeering(),
+			"azurerm_web_sourcecontrols":                      resourceArmWebSourceControls(),
 		},
 	}
 
